@@ -1,0 +1,20 @@
+[
+  {
+    "id": "reference",
+    "file": "/fixtures/reference.wav",
+    "label": "Reference (synth): intro / verse / chorus / verse reprise (key change) / bridge / chorus reprise (altered ending)",
+    "duration": 116
+  },
+  {
+    "id": "take",
+    "file": "/fixtures/take.wav",
+    "label": "Take (synth): verse reprise drops one bar",
+    "duration": 112.8
+  },
+  {
+    "id": "transient",
+    "file": "/fixtures/transient.wav",
+    "label": "Transient stress (synth): +10 dB bump inside a section",
+    "duration": 58.8
+  }
+]
