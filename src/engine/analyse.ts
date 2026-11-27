@@ -5,6 +5,7 @@ import { extractFeatures } from "./features";
 import { analyseBeats } from "./beat";
 import { buildBars } from "./bars";
 import { buildSsm, blurMatrix } from "./ssm";
+import { buildSsmChunked } from "./ssmChunked";
 import { detectBoundaries } from "./boundary";
 import { buildSections } from "./sections";
 
@@ -41,7 +42,17 @@ export function analyseAudio(input: AnalyseInput): AnalysisResult {
   const bars = buildBars(features, beats, duration, options);
 
   progress(0.44, "Building self-similarity matrices");
-  const { ssm: rawSsm } = buildSsm(features, options);
+  // The default "full" path preserves the exact reference semantics. The
+  // opt-in chunked path carries bound/error stats for the optimisation gate.
+  let rawSsm;
+  let ssmOptimization: Record<string, unknown> | null = null;
+  if (options.ssmStrategy === "chunked") {
+    const chunked = buildSsmChunked(features, options);
+    rawSsm = chunked.ssm;
+    ssmOptimization = chunked.stats as unknown as Record<string, unknown>;
+  } else {
+    rawSsm = buildSsm(features, options).ssm;
+  }
   // Smooth the combined matrix before novelty, and keep the raw matrices for
   // the display so the visualisation reflects what was actually measured.
   const blurred = blurMatrix(rawSsm.combined, rawSsm.n, rawSsm.blurSigmaFrames);
@@ -117,7 +128,8 @@ export function analyseAudio(input: AnalyseInput): AnalysisResult {
       noveltyThresholdZ: detection.novelty.thresholdZ,
       rejectedCandidates: detection.rejected,
       loudnessOnlyCandidates: detection.rejected.filter((r) => r.reason.startsWith("loudness-only")).length,
-      notes: notesAll
+      notes: notesAll,
+      ssmOptimization
     },
     options
   };

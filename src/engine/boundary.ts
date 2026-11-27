@@ -287,7 +287,7 @@ export function detectBoundaries(
   const n = ssm.n;
   const hopSeconds = ssm.hopSeconds;
   const notes: string[] = [];
-  const thresholdZ = 1.0;
+  const thresholdZ = options.boundaryThresholdZ ?? 1.0;
 
   // Display traces, frame-resolution checkerboard novelty of the SSM channels.
   const displayHarmonic = checkerboardNovelty(ssm.harmonic, n, options.kernelSeconds, hopSeconds);

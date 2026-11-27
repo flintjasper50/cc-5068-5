@@ -1,0 +1,41 @@
+{
+  "generatedAt": "2026-11-27T02:04:04.346Z",
+  "verdict": "safe-opt-in",
+  "rationale": [
+    "Chunked strategy preserves section counts and repetition families; boundary output is bar-matrix-driven and identical in count. Keeping the production default at full anyway preserves exact display matrices; chunked remains an explicit opt-in."
+  ],
+  "cases": [
+    {
+      "id": "reference",
+      "sameSectionCount": true,
+      "sameGroups": true,
+      "boundaryCountDelta": 0,
+      "fullMaxBoundaryError": 2.371,
+      "chunkedMaxBoundaryError": 2.371
+    },
+    {
+      "id": "take",
+      "sameSectionCount": true,
+      "sameGroups": true,
+      "boundaryCountDelta": 0,
+      "fullMaxBoundaryError": 0.035,
+      "chunkedMaxBoundaryError": 0.035
+    },
+    {
+      "id": "transient",
+      "sameSectionCount": true,
+      "sameGroups": true,
+      "boundaryCountDelta": 0,
+      "fullMaxBoundaryError": 0.035,
+      "chunkedMaxBoundaryError": 0.035
+    },
+    {
+      "id": "long-recap",
+      "sameSectionCount": true,
+      "sameGroups": true,
+      "boundaryCountDelta": 0,
+      "fullMaxBoundaryError": 2.373,
+      "chunkedMaxBoundaryError": 2.373
+    }
+  ]
+}

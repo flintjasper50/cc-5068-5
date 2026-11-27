@@ -59,6 +59,13 @@ export interface SegmentSpec {
   repeatBar?: number;
   /** Loudness bump in dB applied to a bar range, for transient tests. */
   loudnessBump?: { fromBar: number; toBar: number; db: number };
+  /**
+   * Gradual timbre morph of the melody voice from instruments[0] toward
+   * `to`, linear over `overBars` (default: the whole segment). Used to stress
+   * boundary detection with continuous timbre drift that must not create
+   * spurious structural boundaries.
+   */
+  timbreRamp?: { to: string; overBars?: number };
 }
 
 export interface SongSpec {
@@ -197,6 +204,8 @@ export function renderSong(spec: SongSpec, sampleRate = 22050, seed = 7): Render
     const [melodyName, bassName] = seg.instruments;
     const melody = INSTRUMENTS[melodyName];
     const bass = INSTRUMENTS[bassName];
+    const rampInstrument = seg.timbreRamp ? INSTRUMENTS[seg.timbreRamp.to] : null;
+    if (seg.timbreRamp && !rampInstrument) throw new Error(`unknown ramp instrument ${seg.timbreRamp.to}`);
     if (!melody || !bass) throw new Error(`unknown instrument in segment ${seg.name}`);
     const transpose = seg.transpose ?? 0;
     const gain = 10 ** ((seg.gainDb ?? 0) / 20);
@@ -207,6 +216,10 @@ export function renderSong(spec: SongSpec, sampleRate = 22050, seed = 7): Render
       const bumpDb =
         bump && localIndex >= bump.fromBar && localIndex <= bump.toBar ? bump.db : 0;
       const barGain = gain * 10 ** (bumpDb / 20);
+      const rampOver = seg.timbreRamp?.overBars ?? bars.length;
+      const rampMix = seg.timbreRamp
+        ? Math.max(0, Math.min(1, localIndex / Math.max(1, rampOver - 1)))
+        : 0;
       for (const note of seg.phrase.bars[phraseBarIndex]) {
         const startSec = barStart + note.beat * (barSeconds / spec.beatsPerBar);
         // Notes sound through the bar unless the instrument is sustained, in which
@@ -215,7 +228,15 @@ export function renderSong(spec: SongSpec, sampleRate = 22050, seed = 7): Render
           note.beats * (barSeconds / spec.beatsPerBar),
           barSeconds * 0.98
         );
-        renderNote(out, sampleRate, startSec, lengthSec, note.midi + transpose, (note.amp ?? 1) * barGain, melody, rng);
+        const noteAmp = (note.amp ?? 1) * barGain;
+        if (rampInstrument && rampMix > 0) {
+          if (rampMix < 1) {
+            renderNote(out, sampleRate, startSec, lengthSec, note.midi + transpose, noteAmp * (1 - rampMix), melody, rng);
+          }
+          renderNote(out, sampleRate, startSec, lengthSec, note.midi + transpose, noteAmp * rampMix, rampInstrument, rng);
+        } else {
+          renderNote(out, sampleRate, startSec, lengthSec, note.midi + transpose, noteAmp, melody, rng);
+        }
       }
       // Bass: root of the lowest melody note, one octave down, two half-bar hits.
       const lowest = seg.phrase.bars[phraseBarIndex].reduce(
@@ -348,6 +369,15 @@ function repeated(cell: SynthNote[][]): Phrase {
   return { bars: [...cell, ...cell.map((bar) => bar.map((n) => ({ ...n })))] };
 }
 
+/** Repeat a four-bar cell `times` times with independent note copies. */
+function repeatCell(cell: SynthNote[][], times: number): Phrase {
+  const bars: SynthNote[][] = [];
+  for (let t = 0; t < times; t++) {
+    for (const bar of cell) bars.push(bar.map((n) => ({ ...n })));
+  }
+  return { bars };
+}
+
 const VERSE: Phrase = repeated(V_CELL);
 const CHORUS_SAME_OPEN: Phrase = repeated(C_CELL);
 const CHORUS_ALT: Phrase = repeated(C_CELL_ALT);
@@ -419,6 +449,33 @@ export function transientSong(): SongSpec {
         loudnessBump: { fromBar: 3, toBar: 3, db: 10 }
       },
       { name: "P3", phrase: CHORUS_SAME_OPEN, instruments: ["strings", "bass"], transpose: 3 }
+    ]
+  };
+}
+
+/**
+ * Scale/stress programme: a normal verse/chorus cycle followed by a 24-bar
+ * recapitulation of the chorus whose orchestration morphs gradually from
+ * strings through reed to flute. The long repeated block raises the SSM and
+ * alignment load; the continuous timbre ramp must not be split into fake
+ * boundaries. `recapCells` scales the load for benchmarks.
+ */
+export function longRecapSong(recapCells = 6): SongSpec {
+  return {
+    bpm: 100,
+    beatsPerBar: 4,
+    segments: [
+      { name: "intro", phrase: repeatCell(I_CELL, 1), instruments: ["pluck", "bass"], gainDb: -4 },
+      { name: "A1", phrase: repeatCell(V_CELL, 2), instruments: ["piano", "bass"] },
+      { name: "B1", phrase: repeatCell(C_CELL, 2), instruments: ["strings", "bass"] },
+      { name: "A2", phrase: repeatCell(V_CELL, 2), instruments: ["reed", "bass"], transpose: 3 },
+      {
+        name: "B2-long-recap",
+        phrase: repeatCell(C_CELL_ALT, Math.max(2, recapCells)),
+        instruments: ["strings", "bass"],
+        timbreRamp: { to: "flute" },
+        fadeOutSeconds: 0.8
+      }
     ]
   };
 }

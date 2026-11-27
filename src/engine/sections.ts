@@ -304,14 +304,16 @@ export function buildSections(
     }
   }
 
+  const melodyThreshold = options.melodySimThreshold ?? 0.9;
+  const localThreshold = options.localScoreThreshold ?? 0.85;
   const melodyAligned = (m: SectionMatch): boolean =>
-    m.tiHarmonicSimilarity >= 0.9 && m.localScore >= 0.85;
+    m.tiHarmonicSimilarity >= melodyThreshold && m.localScore >= localThreshold;
 
   const melodicPairs = pairList.filter((p) => melodyAligned(p.m));
   const timbreValues = melodicPairs.map((p) => p.m.timbreSimilarity);
   const timbreMean = meanOf(timbreValues);
   const timbreSd = stdOf(timbreValues, timbreMean);
-  const timbreThreshold = Math.max(0.18, timbreMean + timbreSd);
+  const timbreThreshold = Math.max(options.familyTimbreFloor ?? 0.18, timbreMean + timbreSd);
 
   const eligible = new Set<SectionMatch>(
     melodicPairs
@@ -440,7 +442,7 @@ export function buildSections(
     const candidates = s.matches.filter((m) => melodyAligned(m));
     if (candidates.length === 0) {
       s.notes.push(
-        `No section shared enough of the melody (transposition-invariant bar similarity ≥ 0.90); reported as unique.`
+        `No section shared enough of the melody (transposition-invariant bar similarity ≥ ${melodyThreshold.toFixed(2)}); reported as unique.`
       );
       continue;
     }
@@ -480,7 +482,7 @@ export function buildSections(
   const repeated = groups.filter((g) => g.sectionIds.length > 1);
   if (sections.length > 1) {
     notes.push(
-      `Grouping rule: transposition-invariant bar alignment ≥ 90%, plus timbre similarity ≥ ${(timbreThreshold * 100).toFixed(0)}% (mean + 1σ of this programme's melodic-candidate pairs), assigned by mutual-best matching.`
+      `Grouping rule: transposition-invariant bar alignment ≥ ${Math.round(melodyThreshold * 100)}%, plus timbre similarity ≥ ${(timbreThreshold * 100).toFixed(0)}% (mean + 1σ of this programme's melodic-candidate pairs), assigned by mutual-best matching.`
     );
   }
   if (repeated.length > 0) {

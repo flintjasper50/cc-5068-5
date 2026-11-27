@@ -17,6 +17,18 @@ export interface AnalysisOptions {
   minSectionSeconds: number;
   minBoundaryDistanceSeconds: number;
   beatsPerBar: number;
+  /**
+   * Optional live-edit overrides used by the threshold workbench. Undefined
+   * keeps the pinned defaults, so the batch analysis path is unchanged.
+   */
+  boundaryThresholdZ?: number;
+  melodySimThreshold?: number;
+  localScoreThreshold?: number;
+  familyTimbreFloor?: number;
+  /** "full" (default) computes every SSM pair; "chunked" prunes by block bounds. */
+  ssmStrategy?: "full" | "chunked";
+  chunkBlockFrames?: number;
+  chunkPruneBound?: number;
 }
 
 export const DEFAULT_OPTIONS: AnalysisOptions = {
@@ -261,6 +273,8 @@ export interface AnalysisDiagnostics {
   rejectedCandidates: RejectedCandidate[];
   loudnessOnlyCandidates: number;
   notes: string[];
+  /** Present when a non-default SSM strategy (e.g. chunked) was executed. */
+  ssmOptimization?: Record<string, unknown> | null;
 }
 
 export interface AnalysisResult {

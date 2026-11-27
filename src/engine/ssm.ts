@@ -74,17 +74,33 @@ function zScoreDims(src: Float32Array, n: number, dim: number): Float32Array {
   return out;
 }
 
-export function buildSsm(features: FeatureSet, options: AnalysisOptions): SsmBuild {
-  const n = features.times.length;
-  const hopSeconds = features.timing.hopSeconds;
-  const dim = options.mfccBands;
+export interface PreparedSsmVectors {
+  n: number;
+  dim: number;
+  chromaNorm: Float32Array;
+  chromaContrast: Float32Array;
+  mfccNorm: Float32Array;
+  mfccZ: Float32Array;
+}
 
+/** All per-frame normalisations shared by full and chunked SSM builders. */
+export function prepareSsmVectors(features: FeatureSet, options: AnalysisOptions): PreparedSsmVectors {
+  const n = features.times.length;
+  const dim = options.mfccBands;
   const chromaNorm = new Float32Array(features.chroma);
   for (let i = 0; i < n; i++) normaliseVec(chromaNorm, i * 12, 12);
   const chromaContrast = centreChroma(features.chroma, n);
   const mfccZ = zScoreDims(features.mfcc, n, dim);
   const mfccNorm = new Float32Array(mfccZ);
   for (let i = 0; i < n; i++) normaliseVec(mfccNorm, i * dim, dim);
+  return { n, dim, chromaNorm, chromaContrast, mfccNorm, mfccZ };
+}
+
+export function buildSsm(features: FeatureSet, options: AnalysisOptions): SsmBuild {
+  const n = features.times.length;
+  const hopSeconds = features.timing.hopSeconds;
+
+  const { dim, chromaNorm, chromaContrast, mfccNorm } = prepareSsmVectors(features, options);
 
   const harmonic = new Float32Array(n * n);
   const timbre = new Float32Array(n * n);

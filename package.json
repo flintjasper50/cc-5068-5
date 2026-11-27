@@ -10,6 +10,8 @@
     "test": "vitest run",
     "fixtures": "tsx scripts/export-fixtures.ts",
     "evaluate": "tsx scripts/evaluate.ts",
+    "bench": "NODE_OPTIONS=--expose-gc tsx scripts/bench.ts",
+    "gate": "NODE_OPTIONS=--expose-gc tsx scripts/gate-optimization.ts",
     "preview": "vite preview --host 0.0.0.0",
     "e2e": "node scripts/e2e.mjs"
   },
