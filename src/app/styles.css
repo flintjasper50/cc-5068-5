@@ -506,3 +506,286 @@ button.active {
 .cue-line {
   font-family: ui-monospace, monospace;
 }
+
+/* ---- Threshold workbench ------------------------------------------------ */
+
+.threshold-workbench {
+  margin-top: 4px;
+}
+
+.wb-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+button.primary {
+  background: rgba(107, 211, 154, 0.16);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.threshold-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 12px 0;
+}
+
+@media (max-width: 980px) {
+  .threshold-controls {
+    grid-template-columns: 1fr;
+  }
+}
+
+.threshold-control {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.threshold-control label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.threshold-inputs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.threshold-inputs input[type="range"] {
+  flex: 1;
+  min-width: 80px;
+  accent-color: var(--accent);
+}
+
+.threshold-number {
+  width: 68px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 5px 7px;
+  font-variant-numeric: tabular-nums;
+}
+
+.threshold-control.invalid .threshold-number,
+.threshold-control.invalid input[type="range"] {
+  border-color: #e06c75;
+}
+
+.threshold-help {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.threshold-range {
+  font-size: 10.5px;
+  color: #6f7588;
+  font-family: ui-monospace, monospace;
+}
+
+.resegment-error {
+  display: none;
+  border: 1px solid #e06c75;
+  background: rgba(224, 108, 117, 0.12);
+  color: #ff9aa4;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 12.5px;
+  margin: 4px 0 10px;
+}
+
+.resegment-error.show {
+  display: block;
+}
+
+.structure-diff {
+  border-top: 1px solid var(--border);
+  margin-top: 10px;
+  padding-top: 12px;
+}
+
+.diff-summary {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 8px;
+}
+
+.diff-added {
+  color: var(--accent);
+}
+
+.diff-removed {
+  color: #e06c75;
+}
+
+.diff-families {
+  margin: 4px 0 10px;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--accent-2);
+}
+
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 980px) {
+  .compare-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.compare-col h3 {
+  margin-bottom: 8px;
+}
+
+.compare-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-bottom-color: var(--border);
+  font-size: 12.5px;
+}
+
+.compare-row.changed {
+  border-color: rgba(255, 179, 71, 0.5);
+  background: rgba(255, 179, 71, 0.08);
+  border-radius: 8px;
+}
+
+.compare-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.compare-label em {
+  color: var(--muted);
+  font-style: normal;
+  font-size: 11px;
+}
+
+.compare-time {
+  color: var(--muted);
+  font-family: ui-monospace, monospace;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.compare-row button {
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+
+/* ---- Index lab ---------------------------------------------------------- */
+
+.index-lab {
+  margin-bottom: 28px;
+}
+
+.insert-workflow {
+  background: var(--panel-2);
+  border: 1px dashed var(--accent-2);
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin: 10px 0;
+}
+
+.lab-controls {
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+
+.lab-btn-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.lab-select {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.lab-select select {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 7px 10px;
+  font-size: 12.5px;
+  max-width: 340px;
+}
+
+.lab-verdict {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  background: var(--panel-2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.lab-verdict .ok {
+  color: var(--accent);
+}
+
+.lab-verdict .bad {
+  color: #e06c75;
+}
+
+.lab-metrics {
+  display: flex;
+  gap: 8px 16px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.lab-metrics span {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.lab-crosschunk {
+  margin-top: 12px;
+  font-size: 12.5px;
+}
+
+.lab-crosschunk summary {
+  cursor: pointer;
+  color: var(--accent-2);
+  margin-bottom: 8px;
+}
+
+.lab-crosschunk .lab-metrics span {
+  background: transparent;
+}
+

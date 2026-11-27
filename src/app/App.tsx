@@ -14,6 +14,8 @@ import { NoveltyPlot } from "./components/NoveltyPlot";
 import { SectionTimeline } from "./components/SectionTimeline";
 import { OrchestratorPanel } from "./components/OrchestratorPanel";
 import { DiagnosticsPanel } from "./components/DiagnosticsPanel";
+import { ThresholdWorkbench } from "./components/ThresholdWorkbench";
+import { IndexLab } from "./components/IndexLab";
 import { fmtTime, groupColour, pct } from "./lib/format";
 
 interface FixtureEntry {
@@ -439,6 +441,15 @@ export function App() {
           </div>
         </main>
       )}
+
+      {result && (
+        <ThresholdWorkbench
+          result={result}
+          onPlayRange={(start, end, label) => activePlayer.play(start, end, label)}
+        />
+      )}
+
+      <IndexLab />
 
       <footer className="app-footer">
         <p>

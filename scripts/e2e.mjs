@@ -91,6 +91,70 @@ const diag = (await page.getByTestId("diagnostics").textContent()) ?? "";
 check("diagnostics show feature timing", diag.includes("Structural hop"));
 check("diagnostics show boundary error sources", diag.includes("Total uncertainty"));
 check("diagnostics show grouping rule", diag.includes("Grouping rule"));
+
+// --- Threshold workbench: kernel-driven re-segmentation + playback ----------
+await page.getByTestId("threshold-workbench").scrollIntoViewIfNeeded();
+await page.getByTestId("apply-resegment").click();
+await page.waitForSelector('[data-testid="structure-diff"]');
+const defaultCounts = (await page.getByTestId("diff-section-counts").textContent()) ?? "";
+check("workbench applies default thresholds", /Sections: 6 → 6/.test(defaultCounts), defaultCounts);
+
+await page.getByTestId("play-baseline-S1").click();
+await page.waitForTimeout(500);
+const currentLabel = (await page.locator("header .current").textContent()) ?? "";
+check("baseline play button drives the active player", currentLabel.includes("baseline S1"), currentLabel);
+
+await page.getByTestId("boundary-z-threshold-text").fill("2.1");
+await page.getByTestId("apply-resegment").click();
+await page.waitForFunction(() => {
+  const t = document.querySelector('[data-testid="diff-boundary-counts"]')?.textContent ?? "";
+  return t.includes("→ 0");
+});
+const collapsedCounts = (await page.getByTestId("diff-section-counts").textContent()) ?? "";
+check("high z gate collapses to one section", collapsedCounts.includes("→ 1"), collapsedCounts);
+check("collapsed structure offers one edited play row", await page.getByTestId(/^play-edited-/).count() === 1);
+
+await page.getByTestId("melody-threshold-text").fill("9");
+await page.getByTestId("apply-resegment").click();
+const errorBox = page.getByTestId("resegment-error");
+await errorBox.waitFor({ state: "visible" });
+check(
+  "invalid threshold is fed back with its field",
+  (await errorBox.getAttribute("data-field")) === "melodyThreshold" &&
+    ((await errorBox.textContent()) ?? "").includes("between 0.5 and 0.99"),
+  (await errorBox.textContent()) ?? ""
+);
+await page.getByTestId("reset-resegment").click();
+check("reset removes the structure diff", (await page.locator('[data-testid="structure-diff"]').count()) === 0);
+
+// --- Long-song chunk index lab ----------------------------------------------
+await page.getByTestId("index-lab").scrollIntoViewIfNeeded();
+const shortAlt = (await page.getByTestId("lab-alt").textContent()) ?? "";
+check("short query returns chorus + alt ending", shortAlt.includes("both versions returned"), shortAlt);
+const oracleText = (await page.getByTestId("lab-oracle").textContent()) ?? "";
+check("browser lab matches full-matrix oracle", oracleText.includes("recall 100%") && oracleText.includes("false exclusions 0"), oracleText);
+
+await page.getByTestId("lab-query-long").click();
+const longAlt = (await page.getByTestId("lab-alt").textContent()) ?? "";
+check("extended query excludes the alt ending", longAlt.includes("excludes the alt"), longAlt);
+
+await page.getByTestId("lab-query-short").click();
+await page.getByTestId("lab-policy").selectOption("budget");
+check("tight budget forces streaming rescan", ((await page.getByTestId("lab-decision").textContent()) ?? "").includes("rescan"));
+await page.getByTestId("lab-cap").selectOption("generous");
+check("generous cap retains uncertain candidates", ((await page.getByTestId("lab-decision").textContent()) ?? "").includes("retain-uncertain"));
+await page.getByTestId("lab-rescan-retained").click();
+await page.waitForSelector('[data-testid="lab-exact-note"]');
+
+await page.getByTestId("lab-mode-workflow").click();
+check("pre-insert alt is missing", ((await page.getByTestId("lab-alt").textContent()) ?? "").includes("alt missing"));
+await page.getByTestId("lab-insert-alt").click();
+check("runtime insert makes both returns", ((await page.getByTestId("lab-alt").textContent()) ?? "").includes("both versions returned"));
+check("inserted bars are uncovered-new", ((await page.getByTestId("lab-uncovered").textContent()) ?? "").includes("8"));
+
+const crossFound = (await page.getByTestId("crosschunk-found").textContent()) ?? "";
+check("cross-chunk phrase found at both shifted starts", crossFound.includes("2, 30"), crossFound);
+
 check("no console errors", errors.length === 0, errors.join(" | "));
 
 await browser.close();
